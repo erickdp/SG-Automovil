@@ -21,6 +21,17 @@
             <artifactId>commons-dbcp2</artifactId>
             <version>2.7.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.toedter</groupId>
+            <artifactId>jcalendar</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.12</version>
+        </dependency>
     </dependencies>
     <name>SG-E-Automovil</name>
 </project>

@@ -1,22 +1,20 @@
 package domain;
 
-import java.time.LocalDateTime;
-
 public class Vehiculo {
 
     private int idVehiculo;
     private String propietario;
     private String placa;
     private String marca;
-    private LocalDateTime fechaEntrada;
-    private LocalDateTime fechaSalida;
+    private String fechaEntrada;
+    private String fechaSalida;
     private double valorPagado;
     private boolean disponible;
 
     public Vehiculo() {
     }
 
-    public Vehiculo(int idVehiculo, String propietario, String placa, String marca, LocalDateTime fechaEntrada, LocalDateTime fechaSalida, double valorPagado, boolean disponible) {
+    public Vehiculo(int idVehiculo, String propietario, String placa, String marca, String fechaEntrada, String fechaSalida, double valorPagado, boolean disponible) {
         this.idVehiculo = idVehiculo;
         this.propietario = propietario;
         this.placa = placa;
@@ -27,12 +25,12 @@ public class Vehiculo {
         this.disponible = disponible;
     }
 
-    public Vehiculo(String propietario, String placa, String marca, LocalDateTime fechaEntrada, LocalDateTime fechaSalida, double valorPagado, boolean disponible) {
+    public Vehiculo(String propietario, String placa, String marca, String fechaEntrada, double valorPagado, boolean disponible) {
         this.propietario = propietario;
         this.placa = placa;
         this.marca = marca;
         this.fechaEntrada = fechaEntrada;
-        this.fechaSalida = fechaSalida;
+        this.fechaSalida = null;
         this.valorPagado = valorPagado;
         this.disponible = disponible;
     }
@@ -73,19 +71,19 @@ public class Vehiculo {
         this.marca = marca;
     }
 
-    public LocalDateTime getFechaEntrada() {
+    public String getFechaEntrada() {
         return fechaEntrada;
     }
 
-    public void setFechaEntrada(LocalDateTime fechaEntrada) {
+    public void setFechaEntrada(String fechaEntrada) {
         this.fechaEntrada = fechaEntrada;
     }
 
-    public LocalDateTime getFechaSalida() {
+    public String getFechaSalida() {
         return fechaSalida;
     }
 
-    public void setFechaSalida(LocalDateTime fechaSalida) {
+    public void setFechaSalida(String fechaSalida) {
         this.fechaSalida = fechaSalida;
     }
 
