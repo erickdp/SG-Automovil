@@ -6,7 +6,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 public class Conexion {
 
-    private static final String SQL_URL = "jdbc:mysql://localhost:3306/vehiculos?useSSL=false&useTimezone=false&serverTimeZone=UTC&allowPublicKeyRetrieval=true";
+    private static final String SQL_URL = "jdbc:mysql://localhost:3306/control_vehiculos?useSSL=false&useTimezone=false&serverTimeZone=UTC&allowPublicKeyRetrieval=true";
     private static final String SQL_USER = "root";
     private static final String SQL_PASSWORD = "admin";
 

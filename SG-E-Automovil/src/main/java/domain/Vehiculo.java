@@ -1,34 +1,37 @@
 package domain;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Vehiculo {
 
     private int idVehiculo;
     private String propietario;
     private String placa;
-    private String marca;
-    private String fechaEntrada;
-    private String fechaSalida;
+    private String tipoVehiculo;
+    private LocalDateTime fechaEntrada;
+    private LocalDateTime fechaSalida;
     private double valorPagado;
-    private boolean disponible;
+    private byte disponible;
 
     public Vehiculo() {
     }
 
-    public Vehiculo(int idVehiculo, String propietario, String placa, String marca, String fechaEntrada, String fechaSalida, double valorPagado, boolean disponible) {
+    public Vehiculo(int idVehiculo, String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, LocalDateTime fechaSalida, double valorPagado, byte disponible) {
         this.idVehiculo = idVehiculo;
         this.propietario = propietario;
         this.placa = placa;
-        this.marca = marca;
+        this.tipoVehiculo = tipoVehiculo;
         this.fechaEntrada = fechaEntrada;
         this.fechaSalida = fechaSalida;
         this.valorPagado = valorPagado;
         this.disponible = disponible;
     }
 
-    public Vehiculo(String propietario, String placa, String marca, String fechaEntrada, double valorPagado, boolean disponible) {
+    public Vehiculo(String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, double valorPagado, byte disponible) {
         this.propietario = propietario;
         this.placa = placa;
-        this.marca = marca;
+        this.tipoVehiculo = tipoVehiculo;
         this.fechaEntrada = fechaEntrada;
         this.fechaSalida = null;
         this.valorPagado = valorPagado;
@@ -37,6 +40,14 @@ public class Vehiculo {
 
     public Vehiculo(int idVehiculo) {
         this.idVehiculo = idVehiculo;
+    }
+
+    public Vehiculo(String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, byte disponible) {
+        this.propietario = propietario;
+        this.placa = placa;
+        this.tipoVehiculo = tipoVehiculo;
+        this.fechaEntrada = fechaEntrada;
+        this.disponible = disponible;
     }
 
     public int getIdVehiculo() {
@@ -63,27 +74,27 @@ public class Vehiculo {
         this.placa = placa;
     }
 
-    public String getMarca() {
-        return marca;
+    public String getTipoVehiculo() {
+        return tipoVehiculo;
     }
 
-    public void setMarca(String marca) {
-        this.marca = marca;
+    public void setTipoVehiculo(String tipoVehiculo) {
+        this.tipoVehiculo = tipoVehiculo;
     }
 
-    public String getFechaEntrada() {
+    public LocalDateTime getFechaEntrada() {
         return fechaEntrada;
     }
 
-    public void setFechaEntrada(String fechaEntrada) {
+    public void setFechaEntrada(LocalDateTime fechaEntrada) {
         this.fechaEntrada = fechaEntrada;
     }
 
-    public String getFechaSalida() {
+    public LocalDateTime getFechaSalida() {
         return fechaSalida;
     }
 
-    public void setFechaSalida(String fechaSalida) {
+    public void setFechaSalida(LocalDateTime fechaSalida) {
         this.fechaSalida = fechaSalida;
     }
 
@@ -95,17 +106,20 @@ public class Vehiculo {
         this.valorPagado = valorPagado;
     }
 
-    public boolean isDisponible() {
+    public byte getDisponible() {
         return disponible;
     }
 
-    public void setDisponible(boolean disponible) {
+    public void setDisponible(byte disponible) {
         this.disponible = disponible;
     }
 
     @Override
     public String toString() {
-        return "Vehiculo{" + "idVehiculo=" + idVehiculo + ", propietario=" + propietario + ", placa=" + placa + ", marca=" + marca + ", fechaEntrada=" + fechaEntrada + ", fechaSalida=" + fechaSalida + ", valorPagado=" + valorPagado + ", disponible=" + disponible + '}';
+        return "Vehiculo{" + "idVehiculo=" + idVehiculo + ", propietario=" + propietario + ", placa=" + placa + ", "
+                + "tipoVehiculo=" + tipoVehiculo + ", fechaEntrada=" + fechaEntrada.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                + ", fechaSalida=" + fechaSalida.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + ", valorPagado=" + valorPagado
+                + ", disponible=" + disponible + '}';
     }
 
 }

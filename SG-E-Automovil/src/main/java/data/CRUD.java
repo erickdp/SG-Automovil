@@ -11,6 +11,5 @@ public interface CRUD<T> {
     int update(T miObjeto);
 
     int delete(T miObjeto);
-    
-    T readObjetById(T miObjeto);
+
 }
