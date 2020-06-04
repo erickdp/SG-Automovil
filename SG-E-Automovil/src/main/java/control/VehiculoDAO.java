@@ -139,10 +139,11 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
             conn = Conexion.getConexion();
             stmt = conn.prepareStatement("SELECT fechaEntrada, tipoVehiculo FROM vehiculo WHERE placa='" + placa + "' AND disponible=1",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+//            Se usan los valore estaticos de Result Set para determinar que se el rgistro se posiciona en la primera fila con aquellos patrones
             rs = stmt.executeQuery();
             rs.absolute(1);
 
-            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(1).replace(" ", "T"));
+            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(1).replace(" ", "T")); //Mysql devuelve yyyy-MM-dd HH:mm:ss pero LDT acepta yyyy-MM-ddTHH:mm:ss
 
             String tipo = rs.getString(2);
 
@@ -190,7 +191,7 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
             tabla.addCell(vehiculo.getPlaca());
             tabla.addCell(vehiculo.getPropietario());
             tabla.addCell(vehiculo.getFechaEntrada().format(formato));
-            documento.add(tabla);
+            documento.add(tabla); //Se usa la libreria iText
 
             System.out.println("TICKET Generado");
         } catch (FileNotFoundException | DocumentException ex) {
@@ -226,18 +227,20 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
 
         switch (disponible) {
             case 0:
+//                Para solo manejar la fecha y no hh:mm:ss se realiza un casteo a fecha, mas info en los destacados del navegador en la carpeta Java
                 SQL_REQUEST += "(CAST(fechaEntrada AS DATE)='" + fechaEntradaISO + "' "
                         + "AND disponible=" + disponible + ") "
                         + "AND (placa LIKE '%" + placa + "%' AND propietario LIKE '%" + propietario + "%' AND tipoVehiculo LIKE '%" + tipoVehiculo + "%')";
+//                Like sirve para obener registros que tienen ese parametro, no todo pero si una parte
                 try {
                     conn = Conexion.getConexion();
                     stmt = conn.prepareStatement(SQL_REQUEST);
                     rs = stmt.executeQuery();
                     vehiculos = new HashSet<>();
                     while (rs.next()) {
-                        vehiculos.add(new Vehiculo(rs.getString(2), rs.getString(3), rs.getString(4),
-                                LocalDateTime.parse(rs.getString(5).replace(" ", "T")),
-                                LocalDateTime.parse(rs.getString(6).replace(" ", "T")), rs.getDouble(7), rs.getByte(8)));
+                        vehiculos.add(new Vehiculo(rs.getString(1), rs.getString(2), rs.getString(3),
+                                LocalDateTime.parse(rs.getString(4).replace(" ", "T")),
+                                LocalDateTime.parse(rs.getString(5).replace(" ", "T")), rs.getDouble(6), rs.getByte(7)));
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace(System.out);
@@ -258,8 +261,8 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
                     rs = stmt.executeQuery();
                     vehiculos = new HashSet<>();
                     while (rs.next()) {
-                        vehiculos.add(new Vehiculo(rs.getString(2), rs.getString(3), rs.getString(4),
-                                LocalDateTime.parse(rs.getString(5).replace(" ", "T")), rs.getByte(8)));
+                        vehiculos.add(new Vehiculo(rs.getString(1), rs.getString(2), rs.getString(3),
+                                LocalDateTime.parse(rs.getString(4).replace(" ", "T")), rs.getByte(7)));
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace(System.out);
@@ -274,7 +277,6 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
                 System.out.println("No entro a la disponibilidad");
                 break;
         }
-        
         return vehiculos;
     }
 }

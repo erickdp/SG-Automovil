@@ -21,7 +21,24 @@ public class NewMain {
 //        testConexion();
 //        testSeleccion();
 //        VehiculoDAO a = new VehiculoDAO();
-        testSeleccion();
+//        testSeleccion();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = Conexion.getConexion();
+            stmt = conn.prepareStatement("SELECT propietario, placa, tipoVehiculo, fechaEntrada, fechaSalida, valorPagado, disponible FROM vehiculo FROM vehiculo WHERE CAST(fechaEntrada AS DATE)='2020-06-03' AND disponible=0");
+            rs = stmt.executeQuery();
+            while (rs.next()) {                
+                System.out.println(new Vehiculo(rs.getString(2), rs.getString(3), rs.getString(4), LocalDateTime.parse(rs.getString(5).replace(" ", "T")), LocalDateTime.parse(rs.getString(6).replace(" ", "T")), rs.getDouble(7), rs.getByte(8)));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(NewMain.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            Conexion.close(conn);
+            Conexion.close(stmt);
+            Conexion.close(rs);
+        }
     }
 
     public static void elementos(Enumeration a) {

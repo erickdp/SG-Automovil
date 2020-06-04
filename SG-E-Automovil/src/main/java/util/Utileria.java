@@ -11,21 +11,19 @@ import java.util.Set;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 public class Utileria {
 
     public final static byte getDisponibilidad(ButtonGroup grupo) {
         Enumeration grupoDisponible = grupo.getElements();
-        byte disponible = 2;
+        byte disponible = 0;
         while (grupoDisponible.hasMoreElements()) {
             JRadioButton nextElement = (JRadioButton) grupoDisponible.nextElement();
             if (nextElement.isSelected()) {
                 if (nextElement.getText().equalsIgnoreCase("DISPONIBLE")) {
                     disponible = 1;
-                } else if (nextElement.getText().equalsIgnoreCase("NO DISPONIBLE")) {
-                    disponible = 0;
+                    break;
                 }
             }
         }
@@ -34,7 +32,7 @@ public class Utileria {
 
     public final static String getTipoVehiculo(JCheckBox[] grupo) {
         for (JCheckBox cb : grupo) {
-            if(cb.isSelected()) {
+            if (cb.isSelected()) {
                 return cb.getText();
             }
         }
