@@ -1,12 +1,15 @@
 package data;
 
-import java.util.List;
+import java.util.Date;
+import java.util.Set;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 
 public interface CRUD<T> {
 
     int create(T miObjeto);
 
-    List<T> read();
+    Set<T> read(ButtonGroup grupoRD, JCheckBox[] grupoCB, String placa, String propietario, Date fechaEntrada);
 
     int update(T miObjeto);
 

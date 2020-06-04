@@ -4,35 +4,29 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import data.CRUD;
-import data.Conexion;
+import data.*;
 import domain.Vehiculo;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.text.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.Date;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.*;
+import util.Utileria;
 
 public class VehiculoDAO implements CRUD<Vehiculo> {
 
     private static final String SQL_CREATE = "INSERT INTO vehiculo (propietario, placa, tipoVehiculo, "
             + "fechaEntrada, disponible) VALUES(?,?,?,?,?)";
-    private static final String SQL_READ = "SELECT idVehiculo, propietario, placa, marca, fechaEntrada, "
-            + "fechaSalida, valorPagado, disponible FROM vehiculo";
+    private static final String SQL_READ = "SELECT * FROM vehiculo WHERE fechaEntrada";
     private static final String SQL_UPDATE = "UPDATE FROM vehiculo propietario=?, placa=?, marca=?, fechaEntrada=?,"
             + " fechaSalida=?, valorPagado=?, disponible=? WHERE idVehiculo=?";
-    private static final String SQL_DELETE = "DELETE FROM cliente WHERE idVehiculo=?";
+    private static final String SQL_DELETE = "DELETE FROM cliente WHERE placa=? AND disponible=1";
     private static final String SQL_SELECT_BY_ID = "SELECT fechaEntrada, tipo FROM vehiculo WHERE placa=? AND disponible=?";
 
     @Override
@@ -58,31 +52,6 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
             Conexion.close(stmt);
         }
         return row;
-    }
-
-    @Override
-    public List<Vehiculo> read() {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement stmt = null;
-        List<Vehiculo> vehiculos = null;
-        try {
-            vehiculos = new ArrayList<>();
-            conn = Conexion.getConexion();
-            stmt = conn.prepareStatement(SQL_READ);
-            rs = stmt.executeQuery();
-            while (rs.next()) {
-                vehiculos.add(new Vehiculo(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
-                        LocalDateTime.parse(rs.getString(5)), LocalDateTime.parse(rs.getString(6)), rs.getDouble(7), rs.getByte(8)));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace(System.out);
-        } finally {
-            Conexion.close(conn);
-            Conexion.close(rs);
-            Conexion.close(stmt);
-        }
-        return vehiculos;
     }
 
     @Override
@@ -119,7 +88,7 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
         try {
             conn = Conexion.getConexion();
             stmt = conn.prepareStatement(SQL_DELETE);
-            stmt.setInt(1, miObjeto.getIdVehiculo());
+            stmt.setString(1, miObjeto.getPlaca());
             row = stmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace(System.out);
@@ -157,39 +126,44 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
         } catch (SQLException ex) {
 
         }
-
         return null;
     }
 
-    
     public float pagoEstacionamiento(String placa) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
         float valorPagar = 0f;
-        String tipo = null;
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime fechaSalida = LocalDateTime.now();
         try {
             conn = Conexion.getConexion();
-            stmt = conn.prepareStatement("SELECT fechaEntrada, tipo FROM vehiculo WHERE placa='" + placa + "' AND disponible='" + true + "'");
+            stmt = conn.prepareStatement("SELECT fechaEntrada, tipoVehiculo FROM vehiculo WHERE placa='" + placa + "' AND disponible=1",
+                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             rs = stmt.executeQuery();
-            rs.first();
+            rs.absolute(1);
 
-            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(1));
-            valorPagar = fechaSalida.getMinute() - fechaEntrada.getMinute();
-            System.out.println(fechaEntrada.getMinute());
+            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(1).replace(" ", "T"));
 
-            tipo = rs.getString(2);
-            if (tipo.equals("Auto")) {
-                valorPagar += 0.5;
-            } else {
-                valorPagar += 0.25;
+            String tipo = rs.getString(2);
+
+            int horasParqueo = fechaSalida.getHour() - fechaEntrada.getHour();
+
+            if (horasParqueo != 0) {
+                System.out.println("Hora de parqueo" + horasParqueo);
+                valorPagar += horasParqueo;
             }
 
-            stmt.executeUpdate("UPDATE vehiculo SET fechaSalida='" + fechaSalida.format(formato).toString() + "', disponible='"
-                    + false + "', valorPagado='" + valorPagar + "' WHERE placa='" + placa + "' disponible='" + true + "'");
+            valorPagar += (fechaSalida.getMinute() - fechaEntrada.getMinute()) / 60;
 
+            if (tipo.equals("Auto")) {
+                valorPagar += 0.5f;
+            } else {
+                valorPagar += 0.25f;
+            }
+
+            //Para los valores bit que son boolean no se usa '0' o '1' solo se lo pone directamente disponible=1
+            stmt.executeUpdate("UPDATE vehiculo SET fechaSalida='" + fechaSalida + "', disponible=0, valorPagado='" + valorPagar + "' "
+                    + "WHERE placa='" + placa + "' AND disponible=1");
         } catch (SQLException ex) {
             ex.printStackTrace(System.out);
         } finally {
@@ -233,8 +207,74 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
                 }
                 System.out.println("Done");
             } catch (IOException | InterruptedException ex) {
-                Logger.getLogger(VehiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace(System.out);
             }
         }
+    }
+
+    @Override
+    public Set<Vehiculo> read(ButtonGroup grupoRD, JCheckBox[] grupoCB, String placa, String propietario, Date fechaEntrada) {
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement stmt = null;
+        Set<Vehiculo> vehiculos = null;
+        String SQL_REQUEST = "SELECT propietario, placa, tipoVehiculo, fechaEntrada, fechaSalida, valorPagado, disponible FROM vehiculo WHERE ";
+
+        byte disponible = Utileria.getDisponibilidad(grupoRD);
+        String tipoVehiculo = Utileria.getTipoVehiculo(grupoCB);
+        String fechaEntradaISO = Utileria.getFechaEntrada(fechaEntrada);
+
+        switch (disponible) {
+            case 0:
+                SQL_REQUEST += "(CAST(fechaEntrada AS DATE)='" + fechaEntradaISO + "' "
+                        + "AND disponible=" + disponible + ") "
+                        + "AND (placa LIKE '%" + placa + "%' AND propietario LIKE '%" + propietario + "%' AND tipoVehiculo LIKE '%" + tipoVehiculo + "%')";
+                try {
+                    conn = Conexion.getConexion();
+                    stmt = conn.prepareStatement(SQL_REQUEST);
+                    rs = stmt.executeQuery();
+                    vehiculos = new HashSet<>();
+                    while (rs.next()) {
+                        vehiculos.add(new Vehiculo(rs.getString(2), rs.getString(3), rs.getString(4),
+                                LocalDateTime.parse(rs.getString(5).replace(" ", "T")),
+                                LocalDateTime.parse(rs.getString(6).replace(" ", "T")), rs.getDouble(7), rs.getByte(8)));
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace(System.out);
+                } finally {
+                    Conexion.close(conn);
+                    Conexion.close(rs);
+                    Conexion.close(stmt);
+                }
+                break;
+
+            case 1:
+                SQL_REQUEST += "(CAST(fechaEntrada AS DATE)='" + fechaEntradaISO + "' "
+                        + "AND disponible=" + disponible + ") "
+                        + "AND (placa LIKE '%" + placa + "%' AND propietario LIKE '%" + propietario + "%' AND tipoVehiculo LIKE '%" + tipoVehiculo + "%')";
+                try {
+                    conn = Conexion.getConexion();
+                    stmt = conn.prepareStatement(SQL_REQUEST);
+                    rs = stmt.executeQuery();
+                    vehiculos = new HashSet<>();
+                    while (rs.next()) {
+                        vehiculos.add(new Vehiculo(rs.getString(2), rs.getString(3), rs.getString(4),
+                                LocalDateTime.parse(rs.getString(5).replace(" ", "T")), rs.getByte(8)));
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace(System.out);
+                } finally {
+                    Conexion.close(conn);
+                    Conexion.close(rs);
+                    Conexion.close(stmt);
+                }
+                break;
+                
+            default:
+                System.out.println("No entro a la disponibilidad");
+                break;
+        }
+        
+        return vehiculos;
     }
 }

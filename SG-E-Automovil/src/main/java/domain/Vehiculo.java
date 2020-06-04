@@ -17,8 +17,7 @@ public class Vehiculo {
     public Vehiculo() {
     }
 
-    public Vehiculo(int idVehiculo, String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, LocalDateTime fechaSalida, double valorPagado, byte disponible) {
-        this.idVehiculo = idVehiculo;
+    public Vehiculo(String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, LocalDateTime fechaSalida, double valorPagado, byte disponible) {
         this.propietario = propietario;
         this.placa = placa;
         this.tipoVehiculo = tipoVehiculo;
@@ -28,26 +27,18 @@ public class Vehiculo {
         this.disponible = disponible;
     }
 
-    public Vehiculo(String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, double valorPagado, byte disponible) {
-        this.propietario = propietario;
-        this.placa = placa;
-        this.tipoVehiculo = tipoVehiculo;
-        this.fechaEntrada = fechaEntrada;
-        this.fechaSalida = null;
-        this.valorPagado = valorPagado;
-        this.disponible = disponible;
-    }
-
-    public Vehiculo(int idVehiculo) {
-        this.idVehiculo = idVehiculo;
-    }
-
     public Vehiculo(String propietario, String placa, String tipoVehiculo, LocalDateTime fechaEntrada, byte disponible) {
         this.propietario = propietario;
         this.placa = placa;
         this.tipoVehiculo = tipoVehiculo;
         this.fechaEntrada = fechaEntrada;
         this.disponible = disponible;
+        this.fechaSalida = null;
+        this.valorPagado = 0d;
+    }
+
+    public Vehiculo(int idVehiculo) {
+        this.idVehiculo = idVehiculo;
     }
 
     public int getIdVehiculo() {
@@ -116,10 +107,14 @@ public class Vehiculo {
 
     @Override
     public String toString() {
-        return "Vehiculo{" + "idVehiculo=" + idVehiculo + ", propietario=" + propietario + ", placa=" + placa + ", "
-                + "tipoVehiculo=" + tipoVehiculo + ", fechaEntrada=" + fechaEntrada.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                + ", fechaSalida=" + fechaSalida.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + ", valorPagado=" + valorPagado
-                + ", disponible=" + disponible + '}';
+        String cadena = "Vehiculo{" + "propietario=" + propietario + ", placa=" + placa
+                + ", tipoVehiculo=" + tipoVehiculo + ", fechaEntrada=" + fechaEntrada.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + ", disponible=" + disponible + '}';
+        if(this.fechaSalida == null) {
+            cadena += " valor Pagado = 0 " + " fechaSalida = null"; 
+        } else {
+            cadena += "valor Pagado = " + valorPagado + " fechaSalida =" + fechaSalida.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        }
+        return cadena;
     }
 
 }
