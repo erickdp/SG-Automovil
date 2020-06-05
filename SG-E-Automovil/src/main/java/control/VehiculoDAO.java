@@ -8,14 +8,10 @@ import data.*;
 import domain.Vehiculo;
 import java.io.*;
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import util.Utileria;
 
@@ -44,7 +40,7 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
             stmt.setString(4, miObjeto.getFechaEntrada().format(formato));
             stmt.setByte(5, miObjeto.getDisponible());
             row = stmt.executeUpdate();
-            generarTicket(miObjeto);
+            generarTicketEntrada(miObjeto);
         } catch (SQLException ex) {
             ex.printStackTrace(System.out);
         } finally {
@@ -100,32 +96,6 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
     }
 
     public Vehiculo readObjetById(Vehiculo miObjeto) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        Vehiculo vehiculo = null;
-        try {
-            conn = Conexion.getConexion();
-            stmt = conn.prepareStatement(SQL_SELECT_BY_ID);
-            rs = stmt.executeQuery();
-            stmt.setString(1, miObjeto.getPlaca());
-            stmt.setBoolean(2, true);
-            rs.first();
-            String horaEntrada = rs.getString(1);
-
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Calendar cal = Calendar.getInstance();
-            Date date = cal.getTime();
-            String fechaActual = dateFormat.format(date);
-            try {
-                Date fechaEntrada = dateFormat.parse(horaEntrada);
-
-            } catch (ParseException ex) {
-                Logger.getLogger(VehiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (SQLException ex) {
-
-        }
         return null;
     }
 
@@ -135,17 +105,19 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
         ResultSet rs = null;
         float valorPagar = 0f;
         LocalDateTime fechaSalida = LocalDateTime.now();
+        Vehiculo vehiculo = new Vehiculo();
         try {
             conn = Conexion.getConexion();
-            stmt = conn.prepareStatement("SELECT fechaEntrada, tipoVehiculo FROM vehiculo WHERE placa='" + placa + "' AND disponible=1",
+            stmt = conn.prepareStatement("SELECT propietario, tipoVehiculo, fechaEntrada FROM vehiculo WHERE placa='" + placa + "' AND disponible=1",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 //            Se usan los valore estaticos de Result Set para determinar que se el rgistro se posiciona en la primera fila con aquellos patrones
             rs = stmt.executeQuery();
-            rs.absolute(1);
+            rs.first();
 
-            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(1).replace(" ", "T")); //Mysql devuelve yyyy-MM-dd HH:mm:ss pero LDT acepta yyyy-MM-ddTHH:mm:ss
-
+//            Tomar en orden la obtencion de las columnas para el result set no tomar primero la col 2 luego la 1 sino en orden
+            String propietario = rs.getString(1);
             String tipo = rs.getString(2);
+            LocalDateTime fechaEntrada = LocalDateTime.parse(rs.getString(3).replace(" ", "T")); //Mysql devuelve yyyy-MM-dd HH:mm:ss pero LDT acepta yyyy-MM-ddTHH:mm:ss
 
             int horasParqueo = fechaSalida.getHour() - fechaEntrada.getHour();
 
@@ -162,9 +134,17 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
                 valorPagar += 0.25f;
             }
 
+            vehiculo.setPropietario(propietario);
+            vehiculo.setPlaca(placa);
+            vehiculo.setTipoVehiculo(tipo);
+            vehiculo.setFechaEntrada(fechaEntrada);
+            vehiculo.setFechaSalida(fechaSalida);
+            vehiculo.setValorPagado(valorPagar);
+
             //Para los valores bit que son boolean no se usa '0' o '1' solo se lo pone directamente disponible=1
             stmt.executeUpdate("UPDATE vehiculo SET fechaSalida='" + fechaSalida + "', disponible=0, valorPagado='" + valorPagar + "' "
                     + "WHERE placa='" + placa + "' AND disponible=1");
+            generarTicketSalida(vehiculo);
         } catch (SQLException ex) {
             ex.printStackTrace(System.out);
         } finally {
@@ -175,7 +155,7 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
         return valorPagar;
     }
 
-    private void generarTicket(Vehiculo vehiculo) {
+    private void generarTicketEntrada(Vehiculo vehiculo) {
         Document documento = new Document();
         String ruta = System.getProperty("user.home");
         try {
@@ -195,13 +175,54 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
 
             System.out.println("TICKET Generado");
         } catch (FileNotFoundException | DocumentException ex) {
-            Logger.getLogger(VehiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace(System.out);
         } finally {
             documento.close();
             try {
                 if ((new File(ruta + "/Desktop/Ticket_Ingreso.pdf").exists())) {
                     Process p;
                     p = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + ruta + "/Desktop/Ticket_Ingreso.pdf");
+                    p.waitFor(); //son ele minuscula en rund y en dll no son dos 11
+                } else {
+                    System.out.println("File is not exist");
+                }
+                System.out.println("Done");
+            } catch (IOException | InterruptedException ex) {
+                ex.printStackTrace(System.out);
+            }
+        }
+    }
+
+    private void generarTicketSalida(Vehiculo vehiculo) {
+        Document documento = new Document();
+        String ruta = System.getProperty("user.home");
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        try {
+            PdfWriter.getInstance(documento, new FileOutputStream(ruta + "/Desktop/Ticket_Salida.pdf"));
+            documento.open();
+
+            PdfPTable tabla = new PdfPTable(5);
+            tabla.addCell("Placa");
+            tabla.addCell("Propietario");
+            tabla.addCell("Hora Entrada");
+            tabla.addCell("Hora Salida");
+            tabla.addCell("Valor Pagado");
+            tabla.addCell(vehiculo.getPlaca());
+            tabla.addCell(vehiculo.getPropietario());
+            tabla.addCell(vehiculo.getFechaEntrada().format(formato));
+            tabla.addCell(vehiculo.getFechaSalida().format(formato));
+            tabla.addCell(String.valueOf(vehiculo.getValorPagado()));
+            documento.add(tabla); //Se usa la libreria iText
+
+            System.out.println("TICKET Generado");
+        } catch (FileNotFoundException | DocumentException ex) {
+            ex.printStackTrace(System.out);
+        } finally {
+            documento.close();
+            try {
+                if ((new File(ruta + "/Desktop/Ticket_Salida.pdf").exists())) {
+                    Process p;
+                    p = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + ruta + "/Desktop/Ticket_Salida.pdf");
                     p.waitFor(); //son ele minuscula en rund y en dll no son dos 11
                 } else {
                     System.out.println("File is not exist");
@@ -272,7 +293,7 @@ public class VehiculoDAO implements CRUD<Vehiculo> {
                     Conexion.close(stmt);
                 }
                 break;
-                
+
             default:
                 System.out.println("No entro a la disponibilidad");
                 break;

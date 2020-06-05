@@ -30,6 +30,19 @@ public class Utileria {
         return disponible;
     }
 
+    public final static String getTipoVehiculo(ButtonGroup grupo) {
+        Enumeration grupoDisponible = grupo.getElements();
+        while (grupoDisponible.hasMoreElements()) {
+            JRadioButton nextElement = (JRadioButton) grupoDisponible.nextElement();
+            if (nextElement.isSelected()) {
+                if (nextElement.getText().equalsIgnoreCase("AUTO")) {
+                    return "Auto";
+                }
+            }
+        }
+        return "Motocicleta";
+    }
+
     public final static String getTipoVehiculo(JCheckBox[] grupo) {
         for (JCheckBox cb : grupo) {
             if (cb.isSelected()) {
