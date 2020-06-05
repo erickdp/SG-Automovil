@@ -10,25 +10,7 @@
         <maven.compiler.source>14</maven.compiler.source>
         <maven.compiler.target>14</maven.compiler.target>
     </properties>
-    <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib</classpathPrefix>
-              <mainClass>vista.Inicio</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-    <dependencies>
+    <dependencies>  
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -45,10 +27,11 @@
             <version>5.5.12</version>
         </dependency>
         <dependency>
-            <groupId>com.toedter</groupId>
-            <artifactId>jcalendar</artifactId>
-            <version>1.4</version>
-        </dependency>
+    <groupId>com.toedter</groupId>
+    <artifactId>jcalendar</artifactId>
+    <version>1.4</version>
+</dependency>
+
     </dependencies>
     <name>SG-E-Automovil</name>
     <repositories>
@@ -58,4 +41,55 @@
             <url>file:${project.basedir}/lib</url>
         </repository>
     </repositories>
+    <build>
+        <finalName>SG-E-Automovil</finalName>
+        <plugins>        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>false</downloadJavadocs>
+                </configuration>
+            </plugin>           
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    //Versión de JDK con la cual se ha construido el proyecto
+                    // 1.8 significa que se utilizó Java8
+                    <source>14</source>
+                    <target>14</target>
+                </configuration>
+            </plugin>    
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>            
+                    <descriptorRefs>
+                        //Sufijo que se le agregara al fichero JAR ejecutable
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>           
+                    <archive>
+                        <manifest>
+                            //Aqui se establece el nombre de la clase principal
+                            <mainClass>vista.Inicio</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase> 
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
